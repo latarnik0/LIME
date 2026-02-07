@@ -10,7 +10,7 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 
 * **Real-time CPU Usage:** Calculates utilization percentage per core by analyzing raw 'jiffies' from `/proc/stat`.
 * **Memory Management:** Visualizes RAM and Swap usage by parsing `/proc/meminfo`.
-* **Process Viewer:** Lists active processes with PID, User, and Command, fetched by script that executes `ps aux`.
+* **Process Viewer:** Lists active processes with PID, User, and Command.
 * **System Info:** Displays Kernel version, Uptime, and OS release information.
 * **TUI Interface:** Clean, flicker-free terminal interface using `ncurses`.
 
