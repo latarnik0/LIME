@@ -250,8 +250,8 @@ void read_network(STATE &state){
     std::string line;
     int ignoreThis;
     unsigned long rxb, txb;
-	state.net.rx = 0;
-	state.net.tx = 0;
+    state.net.rx = 0;
+    state.net.tx = 0;
 
     std::getline(data, line);
     std::getline(data, line);
@@ -291,4 +291,24 @@ void read_sysinfo(STATE &state){
 	std::getline(dataVer, state.sys.kver);
 	std::getline(dataHost, state.sys.hostname);
 
+}
+
+void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
+	while(run){
+		STATE temp_state;
+		
+		read_cpus(temp_state);
+		read_sysinfo(temp_state);
+                read_procs(temp_state);
+                read_uptime(temp_state);
+                read_mem(temp_state);
+                read_cpud(temp_state);
+                count_active_ps(temp_state);
+                read_network(temp_state);
+		
+		{
+			std::lock_guard<std::mutex> lock(m);
+			state = temp_state;
+		}
+	}
 }

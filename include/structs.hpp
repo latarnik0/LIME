@@ -3,12 +3,12 @@
 #include <vector>
 
 struct MEMORY_INFO {
-	int tot;
-	int av;
-	int usg;
-	int swapt;
-	int swapf;
-	int swapusg;
+	int tot = 0;
+	int av = 0;
+	int usg = 0;
+	int swapt = 0;
+	int swapf = 0;
+	int swapusg = 0;
 };
 
 struct CPU_STATIC_INFO {
@@ -21,32 +21,32 @@ struct CPU_STATIC_INFO {
 };
 
 struct CPU_DYNAMIC_INFO {
-	long user, nice, system, idle;
-    	long iowait, irq, softirq;
-	float usage;
-	int usageInt;
+	long user=0, nice=0, system=0, idle=0;
+    	long iowait=0, irq=0, softirq=0;
+	float usage=0;
+	int usageInt=0;
 };
 
 struct PROCESS_INFO {
-	int interr;
-   	int contextSwitches;
-	int bootTime;
-    	int allProcs;
-    	int runningProcs;
-    	int blockedProcs;
-	long uptimeRaw;
-	int uptimeH, uptimeM, uptimeS;
+	int interr=0;
+   	int contextSwitches=0;
+	int bootTime=0;
+    	int allProcs=0;
+    	int runningProcs=0;
+    	int blockedProcs=0;
+	long uptimeRaw=0;
+	int uptimeH=0, uptimeM=0, uptimeS=0;
 };
 
 struct PSAUX {
-	int kthrd;
-	int uthrd;
+	int kthrd=0;
+	int uthrd=0;
 	std::string paththrd;
 };
 
 struct NETWORK {
-	unsigned long tx;
-	unsigned long rx;
+	unsigned long tx=0;
+	unsigned long rx=0;
 };
 
 struct SYSINFO {

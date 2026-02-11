@@ -31,33 +31,39 @@ void print_res(STATE &state){
 	attron(COLOR_PAIR(3));
 	attron(A_BOLD);
 	attron(A_STANDOUT);
-	mvprintw(3, 24, "CPU");
+	mvprintw(3, 24, "SYSTEM");
 	attroff(COLOR_PAIR(3));
 	attroff(A_BOLD);
 	attroff(A_STANDOUT);
 
+	mvprintw(4, 0, "OS: %s", state.sys.os.c_str());
+    	mvprintw(5, 0, "Kernel version: %s", state.sys.kver.c_str());
+    	mvprintw(6, 0, "Host name: %s", state.sys.hostname.c_str());
+	
+	attron(COLOR_PAIR(3));
+        attron(A_BOLD);
+        attron(A_STANDOUT);
+        mvprintw(8, 24, "CPU");
+        attroff(COLOR_PAIR(3));
+        attroff(A_BOLD);
+        attroff(A_STANDOUT);
 
-	mvprintw(4, 0, "Vendor");
-	printw(" : %s ", (state.cpus.vendor).c_str());
-    mvprintw(5, 0, "Family");
-    printw(" : %s ", (state.cpus.cpufamily).c_str());
-    mvprintw(6, 0, "Model Name");
-    printw(" : %s ", (state.cpus.modelname).c_str());
-    mvprintw(7, 0, "Cores");
-    printw(" : %s ", (state.cpus.cores).c_str());
-    mvprintw(8, 0, "Clock speed:");
-    printw(" : %s ", (state.cpus.mhz).c_str());
+	mvprintw(9, 0, "Vendor: %s" ,state.cpus.vendor.c_str());
+    	mvprintw(10, 0, "Family: %s ", state.cpus.cpufamily.c_str());
+    	mvprintw(11, 0, "Model Name: %s ", state.cpus.modelname.c_str());
+    	mvprintw(12, 0, "Cores: %s ", (state.cpus.cores).c_str());
+    	mvprintw(13, 0, "Clock speed: %s ", (state.cpus.mhz).c_str());
 	printw(" MHz");
 
 
 
 	attron(COLOR_PAIR(3));
-    attron(A_BOLD);
-    attron(A_STANDOUT);
-    mvprintw(10, 20, "Disks Usage");
-    attroff(COLOR_PAIR(3));
-    attroff(A_BOLD);
-    attroff(A_STANDOUT);
+    	attron(A_BOLD);
+    	attron(A_STANDOUT);
+    	mvprintw(15, 20, "Disks Usage");
+    	attroff(COLOR_PAIR(3));
+    	attroff(A_BOLD);
+    	attroff(A_STANDOUT);
 
 
 
@@ -81,19 +87,19 @@ void print_res(STATE &state){
 	
     	
 	// RAM 
-    mvprintw(4, 70, "RAM total : %.2f", static_cast<float> (state.mem.tot / 1000.0));
+    mvprintw(4, 70, "RAM total: %.2f", static_cast<float> (state.mem.tot / 1000.0));
 	printw(" MB");
-    mvprintw(5, 70, "RAM available : %.2f", static_cast<float> (state.mem.av / 1000.0));
+    mvprintw(5, 70, "RAM available: %.2f", static_cast<float> (state.mem.av / 1000.0));
 	printw(" MB");
-	mvprintw(6, 70, "Usage : %.2f", static_cast<float> (((state.mem.tot/1000.0) - (state.mem.av/1000.0) ) / (state.mem.tot/1000.0) * 100.0));
+	mvprintw(6, 70, "Usage: %.2f", static_cast<float> (((state.mem.tot/1000.0) - (state.mem.av/1000.0) ) / (state.mem.tot/1000.0) * 100.0));
 	printw("%%");
 	
 	// swap mem
-	mvprintw(8, 70, "Swap total : %.2f", static_cast<float> (state.mem.swapt / 1000.0));
+	mvprintw(8, 70, "Swap total: %.2f", static_cast<float> (state.mem.swapt / 1000.0));
         printw(" MB");
-    	mvprintw(9, 70, "Swap free : %.2f", static_cast<float> (state.mem.swapf / 1000.0));
+    	mvprintw(9, 70, "Swap free: %.2f", static_cast<float> (state.mem.swapf / 1000.0));
         printw(" MB");
-        mvprintw(10, 70, "Usage : %.2f", static_cast<float> (((state.mem.swapt/1000.0) - (state.mem.swapf/1000.0) ) / (state.mem.swapt/1000.0) * 100.0));
+        mvprintw(10, 70, "Usage: %.2f", static_cast<float> (((state.mem.swapt/1000.0) - (state.mem.swapf/1000.0) ) / (state.mem.swapt/1000.0) * 100.0));
         printw("%%");
 
 	mvprintw(12, 70, "RAM");
@@ -170,9 +176,8 @@ void print_res(STATE &state){
 	mvprintw(0, 140, "Uptime: %02d:%02d:%02d", state.proc.uptimeH, state.proc.uptimeM, state.proc.uptimeS);
 	mvprintw(2, 140, "Kernel threads: %d", state.psaux.kthrd);
 	mvprintw(3, 140, "User threads: %d", state.psaux.uthrd);
-	mvprintw(4, 140, "Receive (bytes): %ld", state.net.rx);
-	mvprintw(5, 140, "Transmit (bytes): %ld", state.net.tx);
-	mvprintw(6, 140, "OS: %s", (state.sys.os).c_str());
-	mvprintw(7, 140, "kernel: %s", (state.sys.kver).c_str());
-	mvprintw(8, 140, "hostname: %s", (state.sys.hostname).c_str());
+	mvprintw(4, 140, "Receive: %ld", state.net.rx/1000);
+	printw("kB");
+	mvprintw(5, 140, "Transmit: %ld", state.net.tx/1000);
+	printw("kB");
 }
