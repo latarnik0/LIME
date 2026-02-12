@@ -244,14 +244,12 @@ void count_active_ps(STATE &state){
         }
 }
 
-
 void read_network(STATE &state){
     std::ifstream data("/proc/net/dev");
     std::string line;
     int ignoreThis;
-    unsigned long rxb, txb;
-    state.net.rx = 0;
-    state.net.tx = 0;
+    unsigned long rxPrev=0, txPrev=0, rxCurr=0, txCurr=0;
+    unsigned long rxDiff, txDiff;
 
     std::getline(data, line);
     std::getline(data, line);
@@ -262,20 +260,56 @@ void read_network(STATE &state){
 
             ss >> interfaceName;
 
-            if(interfaceName == "lo") { continue; }
+            if(interfaceName == "lo:") { continue; }
             else{
-				ss >> rxb;
-                state.net.rx += rxb;
+		    ss >> rxPrev;
+		    state.netprev.rx += rxPrev;
 
                 for(int i=0; i<7; i++){
-					ss >> ignoreThis;
+			ss >> ignoreThis;
                 }
 
-                ss >> txb;
-                state.net.tx += txb;
+                ss >> txPrev;
+                state.netprev.tx += txPrev;
             }
     }
+  
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    std::ifstream data2("/proc/net/dev");
+    std::string line2;
+    int ignoreThis2;
+
+    std::getline(data2, line2);
+    std::getline(data2, line2);
+
+    while(std::getline(data2, line2)){
+            std::stringstream ss2(line2);
+            std::string interfaceName2;
+
+            ss2 >> interfaceName2;
+
+            if(interfaceName2 == "lo:") { continue; }
+            else{
+		    ss2 >> rxCurr;
+		    state.netcur.rx += rxCurr;
+
+                for(int i=0; i<7; i++){
+			ss2 >> ignoreThis2;
+                }
+
+                ss2 >> txCurr;
+                state.netcur.tx += txCurr;
+            }
+    }
+    rxDiff = state.netcur.rx - state.netprev.rx;
+    txDiff = state.netcur.tx - state.netprev.tx;
+
+    state.netcur.rxDynamic = rxDiff;
+    state.netcur.txDynamic = txDiff;
+
 }
+
 
 
 void read_sysinfo(STATE &state){
@@ -312,3 +346,4 @@ void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
 		}
 	}
 }
+
