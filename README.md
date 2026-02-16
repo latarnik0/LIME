@@ -10,7 +10,7 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 * **Static Info:** Lists info about system (OS, kernel version, host name) and static info about CPU like vendor, model name and more.
 * **Memory:** Visualizes RAM and Swap usage by parsing `/proc/meminfo`.
 * **CPU Usage:** Displays CPU usage in real time by calculating raw data from `/proc/stat`.
-* **Network Stats:** Displays the amount of bytes received and transmitted using data from `proc/net/dev`.
+* **Network Stats:** Displays the KB/s received and transmitted using data from `proc/net/dev`.
 * **Processess:** Counts active User and Kernel threads.
 * **Uptime:** Displays uptime.
 * **TUI Interface:** Intuitive terminal interface using `ncurses`.
@@ -24,6 +24,7 @@ The goal of this project was to expand knowledge and the understanding of **Oper
     * **String Manipulation:** Efficient parsing of complex, whitespace-delimited kernel data files.
     * **STL Containers:** Using `std::vector` and `std::map` for dynamic process lists.
     * **Work with filesystem:** Using `std::filesystem` to move through directories.
+    * **Text formatting:** Using `ncurses` library to display everything.
 
 ## Prerequisites
 * Linux environment (Ubuntu/Debian/Arch/Fedora)
@@ -33,5 +34,5 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 
 ## Additional Info
 * Project start date: **january 2026**
-* Last update: **12.02.2026**
+* Last update: **16.02.2026**
 * Status: **under development**
