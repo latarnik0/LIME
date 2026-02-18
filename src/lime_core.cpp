@@ -7,7 +7,11 @@
 #include <chrono>
 #include <filesystem>
 #include <vector>
+#include <regex>
+#include <sys/statvfs.h>
 
+
+// READ MEMORY INFO
 void read_mem(STATE &state){
 
 	std::string line;
@@ -37,6 +41,7 @@ void read_mem(STATE &state){
 	state.mem.usg = ((state.mem.tot - state.mem.av)*100)  / state.mem.tot;
        state.mem.swapusg = ((state.mem.swapt - state.mem.swapf)*100)  / state.mem.swapt;	
 }
+
 
 // READ CPU STATIC INFO
 void read_cpus(STATE &state){
@@ -130,6 +135,7 @@ void read_cpud(STATE &state){
     state.cpud.prevTotal = currTotal;
 }
 
+
 // READ UPTIME
 void read_uptime(STATE &state){
 	std::string line;
@@ -149,6 +155,7 @@ void read_uptime(STATE &state){
     state.proc.uptimeM = state.proc.uptimeRaw / 60;
     state.proc.uptimeS = state.proc.uptimeRaw % 60;
 }
+
 
 
 // PROCS INFO 1
@@ -189,8 +196,8 @@ bool is_number(const std::string& s){
 	else return false;
 }
 
-// PROCS INFO ps aux
-void count_active_ps(STATE &state){
+// COUNT THREADS
+void count_threads(STATE &state){
 	
 	state.psaux.kthrd = 0;
 	state.psaux.uthrd = 0;
@@ -229,6 +236,8 @@ void count_active_ps(STATE &state){
         }
 }
 
+
+// READ NETWORK
 void read_network(STATE &state){
     std::ifstream data("/proc/net/dev");
     std::string line;
@@ -269,6 +278,7 @@ void read_network(STATE &state){
 }
 
 
+// READ SYSTEM INFO
 void read_sysinfo(STATE &state){
 	std::ifstream dataOS("/proc/sys/kernel/ostype");
 	std::ifstream dataVer("/proc/sys/kernel/osrelease");
@@ -284,6 +294,43 @@ void read_sysinfo(STATE &state){
 
 }
 
+
+// READ DISKS INFO
+void read_disks(STATE &state){
+	
+	state.disks.filesystems.clear();
+
+	std::ifstream data("/proc/mounts");
+	std::string line;
+	std::regex sda("(/dev/sda)(.*)");
+	
+	while(std::getline(data, line)){
+		std::stringstream ss(line);
+		FileSystemInfo fs;
+		ss >> fs.device;
+		
+		if(std::regex_match(fs.device, sda)){
+			ss >> fs.mountPoint >> fs.fsType;
+			struct statvfs stat;
+			
+			if(statvfs(fs.mountPoint.c_str(), &stat) == 0) {
+            			fs.total = stat.f_blocks * stat.f_frsize;
+            			fs.available = stat.f_bavail * stat.f_frsize;
+            			fs.used = fs.total - (stat.f_bfree * stat.f_frsize);
+
+            			if(fs.total > 0) {
+                			fs.usage = (static_cast<float>(fs.used) / fs.total) * 100.0f;
+            			}
+
+            			state.disks.filesystems.push_back(fs);
+        		}
+		}	
+
+	}	
+}
+
+
+// THREAD FUNCTION
 void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
 	while(run){
 		STATE temp_state;
@@ -296,7 +343,8 @@ void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
                 read_procs(temp_state);
                 read_uptime(temp_state);
                 read_mem(temp_state);
-		count_active_ps(temp_state);
+		count_threads(temp_state);
+		read_disks(temp_state);
 
                 read_cpud(temp_state); // second call of cpud
                 read_network(temp_state); // second call of network

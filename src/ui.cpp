@@ -18,6 +18,7 @@ void print_res(STATE &state){
 	init_pair(6, COLOR_RED, COLOR_BLACK);
 	init_pair(7, COLOR_BLACK, COLOR_BLACK);
 	init_pair(8, COLOR_GREEN, COLOR_WHITE);
+	init_pair(9, COLOR_MAGENTA, COLOR_WHITE);
 
 
 //----------------------------------STATIC INFO----------------------------------------------------------
@@ -171,7 +172,7 @@ void print_res(STATE &state){
 
 	
 	//swap show
-mvprintw(24, 0, "[");
+	mvprintw(24, 0, "[");
         for(int i=0; i<20; i++){
         if(i<state.mem.swapusg/4){
             if(i<=10){
@@ -256,6 +257,46 @@ mvprintw(24, 0, "[");
 	attroff(A_BOLD);
 	printw("%10.2f KB/s", state.net.txDiff/1024.0f);
 
+
+	attron(COLOR_PAIR(9));
+        attron(A_BOLD);
+        attron(A_STANDOUT);
+        mvprintw(34, 0, "DISKS                ");
+        attroff(COLOR_PAIR(9));
+        attroff(A_BOLD);
+        attroff(A_STANDOUT);
+
+
+	attron(COLOR_PAIR(3));
+        attron(A_BOLD);
+        attron(A_STANDOUT);
+        mvprintw(35, 0, "# Space usage");
+        attroff(COLOR_PAIR(3));
+        attroff(A_BOLD);
+        attroff(A_STANDOUT);
+
+	mvprintw(36, 0, "Device");
+	mvprintw(36, 12, "Total");
+	mvprintw(36, 19, "Free");
+	mvprintw(36, 26, "Usage");
+
+	int row=37;
+	for(const auto& fs : state.disks.filesystems) {
+            mvprintw(row, 0, "%s", fs.device.c_str());
+	    mvprintw(row, 12, "%.1fGB", (fs.total/(1024.0f * 1024.0f * 1024.0f)));
+	    mvprintw(row, 19, "%.1fGB", (fs.available/(1024.0f * 1024.0f * 1024.0f)));
+	    mvprintw(row, 26, "%.1f%%", fs.usage);
+	    row++;
+        }
+	
+	
+	attron(COLOR_PAIR(3));
+        attron(A_BOLD);
+        attron(A_STANDOUT);
+        mvprintw(41, 0, "# Read/Write");
+        attroff(COLOR_PAIR(3));
+        attroff(A_BOLD);
+        attroff(A_STANDOUT);
 
 
 	attron(COLOR_PAIR(4) | A_BOLD);

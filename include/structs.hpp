@@ -56,8 +56,18 @@ struct SYSINFO {
 	std::string hostname;
 }; 
 
+struct FileSystemInfo {
+	std::string device;
+	std::string mountPoint;
+	std::string fsType;
+	unsigned long long total;    
+    	unsigned long long used;     
+    	unsigned long long available; 
+    	float usage;
+};
+
 struct DISK_INFO {
-	// TODO
+	std::vector<FileSystemInfo> filesystems;
 };
 
 
@@ -67,7 +77,7 @@ struct STATE {
 	CPU_STATIC_INFO cpus;
 	CPU_DYNAMIC_INFO cpud;
 	PROCESS_INFO proc;
-	DISK_INFO disk;
+	DISK_INFO disks;
 	PSAUX psaux;
 	NETWORK net;
 	SYSINFO sys;
