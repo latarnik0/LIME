@@ -295,21 +295,43 @@ void read_sysinfo(STATE &state){
 }
 
 
-// READ DISKS INFO
-void read_disks(STATE &state){
-	
-	state.disks.filesystems.clear();
+bool is_physical_disk(std::string &s){
+        static const std::regex sdCheck("^sd[a-z]+$");
+        static const std::regex nvmeCheck("^nvme[0-9]+n[0-9]+$");
+        static const std::regex vdCheck("^vd[a-z]+$");
+        static const std::regex mmcCheck("^mmcblk[0-9]+$");
 
+        if(std::regex_match(s, sdCheck) || std::regex_match(s, nvmeCheck) || std::regex_match(s, vdCheck) || std::regex_match(s, mmcCheck)){
+                return true;
+        }
+        else return false;
+}
+
+
+
+// READ DISKS SPACE INFO
+void read_disks(STATE &state){
+	state.disks.filesystems.clear();
 	std::ifstream data("/proc/mounts");
 	std::string line;
-	std::regex sda("(/dev/sda)(.*)");
+	static const std::regex sdCheck("(/dev/sd)(.*)");
+        static const std::regex nvmeCheck("(/dev/nvme)(.*)");
+        static const std::regex vdCheck("(/dev/vd)(.*)");
+        static const std::regex mmcCheck("(/dev/mmcblk)(.*)");
+	static const std::regex hdCheck("(/dev/hd)(.*)");
+
+	if(!data.is_open()){
+                std::cerr<<"Cannot open file diskstats"<<std::endl;
+        }
 	
 	while(std::getline(data, line)){
 		std::stringstream ss(line);
 		FileSystemInfo fs;
 		ss >> fs.device;
 		
-		if(std::regex_match(fs.device, sda)){
+		if(std::regex_match(fs.device, sdCheck) || std::regex_match(fs.device, nvmeCheck) || std::regex_match(fs.device, vdCheck) ||
+			std::regex_match(fs.device, mmcCheck) || std::regex_match(fs.device, hdCheck)) {
+
 			ss >> fs.mountPoint >> fs.fsType;
 			struct statvfs stat;
 			
@@ -330,13 +352,46 @@ void read_disks(STATE &state){
 }
 
 
-// THREAD FUNCTION
+// READ ALL DISKS READ/WRITE INFO
+void read_disk_rw(STATE &state){
+	std::ifstream data("/proc/diskstats");
+	std::string line, device, ignoreThis;
+	unsigned long long currWritten=0, currRead=0, totalCurrRead=0, totalCurrWritten=0;
+	
+	if(!data.is_open()){
+		std::cerr<<"Cannot open file diskstats"<<std::endl;
+	}
+
+	while(std::getline(data, line)){
+		std::stringstream ss(line);
+		ss >> ignoreThis >> ignoreThis >> device;
+		
+		if(is_physical_disk(device)){
+			ss >> ignoreThis >> ignoreThis >> currRead >> ignoreThis >> ignoreThis >> ignoreThis >> currWritten;
+			totalCurrRead += currRead;
+			totalCurrWritten += currWritten;
+		}
+	}
+	totalCurrRead *= 512;
+	totalCurrWritten *= 512;
+	
+	if(state.disks.prevRead > 0){
+		state.disks.readDiff = totalCurrRead - state.disks.prevRead;
+		state.disks.writeDiff = totalCurrWritten - state.disks.prevWrite;
+	}
+	state.disks.prevRead = totalCurrRead;
+	state.disks.prevWrite = totalCurrWritten;
+}
+
+
+// THREAD
 void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
 	while(run){
 		STATE temp_state;
 		
-		read_cpud(temp_state); // first call of cpud
+		read_cpud(temp_state); // first call of cpud (so that "prev variables" are not equal to 0)
                 read_network(temp_state); // first call of network
+		read_disk_rw(temp_state); // first call of read/write 
 
 		read_cpus(temp_state);
 		read_sysinfo(temp_state);
@@ -348,6 +403,7 @@ void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
 
                 read_cpud(temp_state); // second call of cpud
                 read_network(temp_state); // second call of network
+		read_disk_rw(temp_state); // second call of read/write
 		
 		{
 			std::lock_guard<std::mutex> lock(m);

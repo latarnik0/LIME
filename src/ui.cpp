@@ -293,11 +293,13 @@ void print_res(STATE &state){
 	attron(COLOR_PAIR(3));
         attron(A_BOLD);
         attron(A_STANDOUT);
-        mvprintw(41, 0, "# Read/Write");
+        mvprintw(40, 0, "# Read/Write");
         attroff(COLOR_PAIR(3));
         attroff(A_BOLD);
         attroff(A_STANDOUT);
 
+	mvprintw(41, 0, "Read: %8.2f KB/s", static_cast<float>(state.disks.readDiff/1024.0f));
+	mvprintw(42, 0, "Write: %8.2f KB/s", static_cast<float>(state.disks.writeDiff/1024.0f));
 
 	attron(COLOR_PAIR(4) | A_BOLD);
 	mvprintw(0, 140, "Uptime: ");

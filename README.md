@@ -11,6 +11,7 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 * **Memory:** Visualizes RAM and Swap usage by parsing `/proc/meminfo`.
 * **CPU Usage:** Displays CPU usage in real time by calculating raw data from `/proc/stat`.
 * **Network Stats:** Displays the KB/s received and transmitted using data from `proc/net/dev`.
+* **Disks usage:** Dispalys disks memory usage and real-time read/write values.
 * **Processess:** Counts active User and Kernel threads.
 * **Uptime:** Displays uptime.
 * **TUI Interface:** Intuitive terminal interface using `ncurses`.
@@ -21,10 +22,9 @@ The goal of this project was to expand knowledge and the understanding of **Oper
     * Understanding the **`/proc` filesystem** structure. 
 * **C++ Development:**
     * **Multithreading:** Implemented multithreading. One thread to gather and update data and main thread to read data and print results. Race condition is taken care of by using `std::mutex` and `std::atomic`.   
-    * **String Manipulation:** Efficient parsing of complex, whitespace-delimited kernel data files.
+    * **Data processing:** Efficient parsing of complex, whitespace-delimited kernel data files and using `std::regex` to extract data.
     * **STL Containers:** Using `std::vector` and `std::map` for dynamic process lists.
-    * **Work with filesystem:** Using `std::filesystem` to move through directories.
-    * **Text formatting:** Using `ncurses` library to display everything.
+    * **Work with filesystems:** Using `std::filesystem` to move through and check directories.
 
 ## Prerequisites
 * Linux environment (Ubuntu/Debian/Arch/Fedora)
@@ -34,5 +34,5 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 
 ## Additional Info
 * Project start date: **january 2026**
-* Last update: **18.02.2026**
+* Last update: **19.02.2026**
 * Status: **under development**

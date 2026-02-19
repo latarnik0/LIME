@@ -12,5 +12,7 @@ void count_threads(STATE &state);
 void read_network(STATE &state);
 void read_sysinfo(STATE &state);
 void read_disks(STATE &state);
+void read_disk_rw(STATE &state);
 bool is_number(const std::string& s);
+bool is_physical_disk(const std::string& s);
 void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run);

@@ -60,14 +60,13 @@ struct FileSystemInfo {
 	std::string device;
 	std::string mountPoint;
 	std::string fsType;
-	unsigned long long total;    
-    	unsigned long long used;     
-    	unsigned long long available; 
+	unsigned long long total, used, available; 
     	float usage;
 };
 
 struct DISK_INFO {
 	std::vector<FileSystemInfo> filesystems;
+	unsigned long long prevRead=0, prevWrite=0, readDiff=0, writeDiff=0;
 };
 
 
