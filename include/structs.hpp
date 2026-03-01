@@ -5,10 +5,10 @@
 struct MEMORY_INFO {
 	int tot = 0;
 	int av = 0;
-	int usg = 0;
+	float usg = 0;
 	int swapt = 0;
 	int swapf = 0;
-	int swapusg = 0;
+	float swapusg = 0;
 };
 
 struct CPU_STATIC_INFO {
@@ -69,6 +69,15 @@ struct DISK_INFO {
 	unsigned long long prevRead=0, prevWrite=0, readDiff=0, writeDiff=0;
 };
 
+struct PROCESS {
+    int pid = 0;
+    std::string user = "N/A", command = "";
+    char RSZ = '?'; 
+    unsigned long long utime = 0, stime = 0;
+    int priority = 0, nice = 0;
+    unsigned long long memSize = 0, memResident = 0, memShared = 0;
+};
+
 
 // MAIN STRUCTURE
 struct STATE {
@@ -80,4 +89,6 @@ struct STATE {
 	PSAUX psaux;
 	NETWORK net;
 	SYSINFO sys;
+	std::vector<PROCESS> pCurr;
+	std::vector<PROCESS> pPrev;
 };

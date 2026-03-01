@@ -12,7 +12,7 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 * **CPU Usage:** Displays CPU usage in real time by calculating raw data from `/proc/stat`.
 * **Network Stats:** Displays the KB/s received and transmitted using data from `proc/net/dev`.
 * **Disks usage:** Dispalys disks memory usage and real-time read/write values.
-* **Processess:** Counts active User and Kernel threads.
+* **Processess:** Lists active processes. Counts active User and Kernel threads.
 * **Uptime:** Displays uptime.
 * **TUI Interface:** Intuitive terminal interface using `ncurses`.
 
@@ -34,5 +34,5 @@ The goal of this project was to expand knowledge and the understanding of **Oper
 
 ## Additional Info
 * Project start date: **january 2026**
-* Last update: **19.02.2026**
+* Last update: **01.03.2026**
 * Status: **under development**

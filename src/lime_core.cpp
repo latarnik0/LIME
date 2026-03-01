@@ -9,6 +9,10 @@
 #include <vector>
 #include <regex>
 #include <sys/statvfs.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 
 // READ MEMORY INFO
@@ -38,8 +42,8 @@ void read_mem(STATE &state){
 	if(config.count("SwapTotal:")) { state.mem.swapt = config["SwapTotal:"]; }
 	if(config.count("SwapFree:")) { state.mem.swapf = config["SwapFree:"]; }
 	
-	state.mem.usg = ((state.mem.tot - state.mem.av)*100)  / state.mem.tot;
-       state.mem.swapusg = ((state.mem.swapt - state.mem.swapf)*100)  / state.mem.swapt;	
+	state.mem.usg = ((state.mem.tot - state.mem.av)*100.0f)  / state.mem.tot;
+       	state.mem.swapusg = ((state.mem.swapt - state.mem.swapf)*100.0f)  / state.mem.swapt;	
 }
 
 
@@ -384,6 +388,112 @@ void read_disk_rw(STATE &state){
 }
 
 
+bool parse_status(const std::string& pidStr, PROCESS& p){
+	std::ifstream statusData("/proc/" + pidStr + "/status");
+	if(!statusData.is_open()) return false;
+	
+	int ruid;
+	std::string uid;
+	std::string line;
+			
+	while(std::getline(statusData, line)){
+		std::stringstream ss(line);
+		ss >> uid;
+				
+		if(uid != "Uid:") continue; 
+		ss >> ruid;
+		break;
+	}	
+	struct passwd *userInfo = getpwuid(ruid);
+			
+	if(userInfo != NULL){
+		p.user = userInfo->pw_name;
+	}
+	else{
+		p.user = std::to_string(ruid);
+	}
+	
+	return true;
+}
+
+
+bool parse_stat(const std::string& pidStr, PROCESS& p){
+	std::ifstream statData("/proc/" + pidStr + "/stat");
+	if(!statData.is_open()) return false;
+
+        std::string line;
+
+	while(std::getline(statData, line)){
+		std::stringstream ss(line);
+		std::string ignorethis;
+		ss >> ignorethis >> ignorethis >> p.RSZ >> 
+			ignorethis >> ignorethis >> ignorethis >> ignorethis >> ignorethis >> ignorethis >> ignorethis >> ignorethis >> ignorethis >> ignorethis >> 
+			p.utime>> p.stime >> ignorethis >> ignorethis >> 
+			p.priority >> p.nice;
+
+	}
+	return true;
+}
+
+
+bool parse_statm(const std::string& pidStr, PROCESS& p){
+ 	std::ifstream statmData("/proc/" + pidStr + "/statm");
+	if(!statmData.is_open()) return false;
+
+	std::string line;
+	
+	while(std::getline(statmData, line)){
+		std::stringstream ss(line);
+		ss >> p.memSize >> p.memResident >> p.memShared;
+	}
+	unsigned long long pageSize = sysconf(_SC_PAGESIZE);
+        p.memSize = (p.memSize * pageSize) / 1024;
+        p.memResident = (p.memResident * pageSize) / 1024;
+        p.memShared = (p.memShared * pageSize) / 1024;
+	
+	return true;
+}
+
+
+bool parse_cmdline(const std::string& pidStr, PROCESS& p) {
+    std::ifstream cmdlineData("/proc/" + pidStr + "/cmdline");
+    if (!cmdlineData.is_open()) return false;
+
+    std::string line;
+    if (std::getline(cmdlineData, line)) {
+        for (char& c : line) {
+            if (c == '\0') {
+                c = ' ';
+            }
+        }
+        p.command = line;
+    }
+    return true;
+}
+
+
+void update_proc(STATE &state) {
+	state.pPrev = state.pCurr;
+        state.pCurr.clear();
+	for (const auto& entryP : std::filesystem::directory_iterator("/proc")) {
+        	if (!entryP.is_directory()) continue;
+
+        	std::string pidStr = entryP.path().filename().string();
+        	if (!is_number(pidStr)) continue;
+
+       		PROCESS p;
+        	p.pid = std::stoi(pidStr);
+
+        	parse_cmdline(pidStr, p);
+        	parse_stat(pidStr, p);   
+        	parse_status(pidStr, p);
+		parse_statm(pidStr, p);
+
+        	state.pCurr.push_back(p);
+    }
+}
+
+
 // THREAD
 void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
 	while(run){
@@ -400,6 +510,7 @@ void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
                 read_mem(temp_state);
 		count_threads(temp_state);
 		read_disks(temp_state);
+		update_proc(temp_state);
 
                 read_cpud(temp_state); // second call of cpud
                 read_network(temp_state); // second call of network

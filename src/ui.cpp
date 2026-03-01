@@ -2,8 +2,8 @@
 #include <ncurses.h>
 
 // PRINT STATE
-void print_res(STATE &state){
-
+void print_res(STATE &state, int scroll_offset){
+	erase();
 	int max_x, max_y;
 	getmaxyx(stdscr, max_y, max_x);
 
@@ -129,12 +129,12 @@ void print_res(STATE &state){
 	attron(A_BOLD);
         mvprintw(20, 0, "RAM usage: ");
         attroff(A_BOLD);
-        printw("%10.2f %%", ((state.mem.tot - state.mem.av ) / (state.mem.tot * 100.0f)));
+        printw("%10.2f %%", state.mem.usg);
 
 	attron(A_BOLD);
         mvprintw(21, 0, "Swap usage: ");
 	attroff(A_BOLD);
-	printw("%10.2f %%", (((state.mem.swapt - state.mem.swapf) ) / (state.mem.swapt * 100.0f)));
+	printw("%10.2f %%", state.mem.swapusg);
 	
 	attron(A_BOLD);
         mvprintw(22, 0, "CPU usage: ");
@@ -302,17 +302,64 @@ void print_res(STATE &state){
 	mvprintw(42, 0, "Write: %8.2f KB/s", static_cast<float>(state.disks.writeDiff/1024.0f));
 
 	attron(COLOR_PAIR(4) | A_BOLD);
-	mvprintw(0, 140, "Uptime: ");
+	mvprintw(max_y-3, 0, "Uptime: ");
 	attroff(COLOR_PAIR(4) | A_BOLD);
 	printw("%02d:%02d:%02d", state.proc.uptimeH, state.proc.uptimeM, state.proc.uptimeS);
-
+	
 	attron(A_BOLD);
-	mvprintw(2, 140, "Kernel threads: ");
-	attroff(A_BOLD);
-	printw("%d", state.psaux.kthrd);
+        mvprintw(max_y-2, 0, "Kernel threads: ");
+        attroff(A_BOLD);
+        printw("%d", state.psaux.kthrd);
 
-	attron(A_BOLD);
-	mvprintw(3, 140, "User threads: ");
-	attroff(A_BOLD);
-	printw("%d", state.psaux.uthrd);
+        attron(A_BOLD);
+        mvprintw(max_y-1, 0, "User threads: ");
+        attroff(A_BOLD);
+        printw("%d", state.psaux.uthrd);
+
+
+
+	int pstarty = 0;
+	int pstartx = 59;
+	
+	attron(A_REVERSE);
+	for(int i=pstarty;i<max_y;i++){
+		mvprintw(i, pstartx-2, "  ");
+	}
+	mvprintw(pstarty, pstartx, "%-8s %-12s %-8s %-8s %-8s %-10s %s", 
+             "PID", "USER", "PR", "NICE", "STATE", "MEM", "COMMAND");
+	for(int i = getcurx(stdscr); i < max_x; i++) addch(' ');
+	attroff(A_REVERSE);
+
+	int current_row = pstarty+1;
+	
+	for (size_t i = scroll_offset; i < state.pCurr.size(); ++i) {
+                if (current_row >= max_y) {
+                        break;
+                }
+                const auto& p = state.pCurr[i];
+                std::string user = p.user.empty() ? "N/A" : p.user; 
+		std::string cmd = p.command.empty() ? "[Kernel Thread]" : p.command;
+		char state_char = (p.RSZ == 0) ? '?' : p.RSZ;
+
+                int cmd_max_len = max_x - pstartx - 50; 
+                
+                if (cmd_max_len > 0 && cmd.length() > cmd_max_len) {
+                        cmd = cmd.substr(0, cmd_max_len - 3);
+                }
+                
+
+                mvprintw(current_row, pstartx, "%-8d %-12.12s %-8d %-8d %-8c %-10llu %-48.48s",
+                        p.pid,
+                        user.c_str(),
+                        p.priority,
+                        p.nice,
+                        state_char,
+                        p.memResident,
+                        cmd.c_str());
+
+  
+
+                current_row++;
+        }
+        refresh();
 }
