@@ -24,7 +24,7 @@ struct CPU_DYNAMIC_INFO {
 	unsigned long long user=0, nice=0, system=0, idle=0, iowait=0, irq=0, softirq=0;
 	float usage=0.0f;
 	float smoothUsage=0.0f;
-	unsigned long long prevTotal=0, prevIdle=0;
+	unsigned long long prevTotal=0, prevIdle=0, deltaTotal = 0;
 };
 
 struct PROCESS_INFO {
@@ -76,6 +76,7 @@ struct PROCESS {
     unsigned long long utime = 0, stime = 0;
     int priority = 0, nice = 0;
     unsigned long long memSize = 0, memResident = 0, memShared = 0;
+    float cpupercent = 0.0f;
 };
 
 

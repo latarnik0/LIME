@@ -2,7 +2,7 @@
 #include <ncurses.h>
 
 // PRINT STATE
-void print_res(STATE &state, int scroll_offset){
+void print_res(STATE &state, int scroll_offset, int selectedPID){
 	erase();
 	int max_x, max_y;
 	getmaxyx(stdscr, max_y, max_x);
@@ -325,8 +325,8 @@ void print_res(STATE &state, int scroll_offset){
 	for(int i=pstarty;i<max_y;i++){
 		mvprintw(i, pstartx-2, "  ");
 	}
-	mvprintw(pstarty, pstartx, "%-8s %-12s %-8s %-8s %-8s %-10s %s", 
-             "PID", "USER", "PR", "NICE", "STATE", "MEM", "COMMAND");
+	mvprintw(pstarty, pstartx, "%-7s %-12s %-7s %-7s %-7s %-10s %-4.4s %s", 
+             "PID", "USER", "PR", "NICE", "STATE", "MEM", "CPU %%", "COMMAND");
 	for(int i = getcurx(stdscr); i < max_x; i++) addch(' ');
 	attroff(A_REVERSE);
 
@@ -347,15 +347,26 @@ void print_res(STATE &state, int scroll_offset){
                         cmd = cmd.substr(0, cmd_max_len - 3);
                 }
                 
+		if(p.pid == selectedPID){
+			attron(A_REVERSE);
+			attron(COLOR_PAIR(6));
+		}
 
-                mvprintw(current_row, pstartx, "%-8d %-12.12s %-8d %-8d %-8c %-10llu %-48.48s",
+                mvprintw(current_row, pstartx, "%-7d %-12.12s %-7d %-7d %-7c %-10llu %-2.2f %-48.48s",
                         p.pid,
                         user.c_str(),
                         p.priority,
                         p.nice,
                         state_char,
                         p.memResident,
-                        cmd.c_str());
+			p.cpupercent,
+                        cmd.c_str()
+		);
+
+		if(p.pid == selectedPID){
+                        attroff(A_REVERSE);
+			attroff(COLOR_PAIR(6));
+                }
 
   
 

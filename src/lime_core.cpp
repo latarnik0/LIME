@@ -137,6 +137,7 @@ void read_cpud(STATE &state){
     
     state.cpud.prevIdle = currIdle;
     state.cpud.prevTotal = currTotal;
+    state.cpud.deltaTotal = totalDiff;
 }
 
 
@@ -161,36 +162,6 @@ void read_uptime(STATE &state){
 }
 
 
-
-// PROCS INFO 1
-void read_procs(STATE &state){
-	std::string line;
-    int hours, minutes, seconds;
-	std::map<std::string, int> config;
-    std::ifstream infoProcs("/proc/stat");
-
-    if(!infoProcs.is_open()){
-            std::cerr<<"Cannot open file stat (processes)"<<std::endl;
-    }
-
-    while(std::getline(infoProcs, line)){
-        	std::stringstream ss(line);
-            std::string key;
-            int val;
-            ss >> key >> val;
-
-            if(!key.empty()){
-                    config[key] = val;
-            }
-    }
-    if(config.count("intr")) { state.proc.interr = config["intr"]; }
-    if(config.count("ctxt")) { state.proc.contextSwitches = config["ctxt"]; }
-	if(config.count("btime")) { state.proc.bootTime = config["btime"]; }
-    if(config.count("processes")) { state.proc.allProcs = config["processes"]; }
-	if(config.count("procs_running")) { state.proc.runningProcs = config["procs_running"]; }
-    if(config.count("procs_blocked")) { state.proc.blockedProcs = config["procs_blocked"]; }
-	
-}
 
 
 bool is_number(const std::string& s){
@@ -471,6 +442,25 @@ bool parse_cmdline(const std::string& pidStr, PROCESS& p) {
     return true;
 }
 
+void calc_proc_cpu(STATE &state) {
+    if (state.cpud.deltaTotal == 0) return;     
+    int cores = std::stoi(state.cpus.cores); 
+
+    for (auto& currproc : state.pCurr) {
+
+        for (const auto& prevproc : state.pPrev) {
+            if (currproc.pid == prevproc.pid) {
+                unsigned long long currRuntime = currproc.utime + currproc.stime;
+                unsigned long long prevRuntime = prevproc.utime + prevproc.stime;                
+                unsigned long long diff = currRuntime - prevRuntime;
+
+                currproc.cpupercent = (static_cast<float>(diff) / static_cast<float>(state.cpud.deltaTotal)) * 100.0f * cores;
+                
+                break;
+            }
+        }
+    }
+}
 
 void update_proc(STATE &state) {
 	state.pPrev = state.pCurr;
@@ -488,33 +478,39 @@ void update_proc(STATE &state) {
         	parse_stat(pidStr, p);   
         	parse_status(pidStr, p);
 		parse_statm(pidStr, p);
-
-        	state.pCurr.push_back(p);
+        	
+		state.pCurr.push_back(p);
     }
 }
 
 
 // THREAD
 void gather_data(STATE &state, std::mutex &m, std::atomic<bool> &run){
-	while(run){
-		STATE temp_state;
-		
-		read_cpud(temp_state); // first call of cpud (so that "prev variables" are not equal to 0)
-                read_network(temp_state); // first call of network
-		read_disk_rw(temp_state); // first call of read/write 
+	STATE temp_state;
+	
+	// static functions out of loop
+	read_cpus(temp_state);
+        read_sysinfo(temp_state);
 
-		read_cpus(temp_state);
-		read_sysinfo(temp_state);
-                read_procs(temp_state);
+	// 1st call of math-dynamic functions to populate variables
+	read_cpud(temp_state); 
+	read_network(temp_state); 
+        read_disk_rw(temp_state); 
+        update_proc(temp_state); 
+
+	while(run){
                 read_uptime(temp_state);
                 read_mem(temp_state);
 		count_threads(temp_state);
 		read_disks(temp_state);
-		update_proc(temp_state);
 
-                read_cpud(temp_state); // second call of cpud
-                read_network(temp_state); // second call of network
-		read_disk_rw(temp_state); // second call of read/write
+		// 2nd call of math-dynamic functions
+		update_proc(temp_state);
+                read_cpud(temp_state); 
+                read_network(temp_state); 
+		read_disk_rw(temp_state); 
+
+		calc_proc_cpu(temp_state);
 		
 		{
 			std::lock_guard<std::mutex> lock(m);
