@@ -1,4 +1,4 @@
-# 🍋‍🟩LIME: A Low-Level Linux Metrics
+# LIME: A Low-Level Linux Metrics
 
 ## Overview
 
