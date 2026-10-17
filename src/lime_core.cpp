@@ -14,6 +14,57 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+namespace fs = std::filesystem;
+
+void read_cpu_temp(STATE &state) 
+{
+    std::string hwmon_base = "/sys/class/hwmon/";
+    
+    for (const auto& entry : fs::directory_iterator(hwmon_base))
+	{
+        std::ifstream name_file(entry.path().string() + "/name");
+        std::string name;
+        name_file >> name;
+        if(name == "coretemp")
+		{
+            // temp1_input to zazwyczaj "Package ID 0", czyli główna temperatura układu
+            std::ifstream temp_file(entry.path().string() + "/temp1_input");
+            int temp_millidegrees;
+            
+            if(temp_file >> temp_millidegrees)
+			{
+                state.cpuTemp = temp_millidegrees / 1000;
+                return;
+        	}
+    	}
+	}
+}
+
+void read_cpu_freqs(STATE &state)
+{
+    state.cpuFreqs.clear();
+    int cpu_idx = 0;
+    
+    while(true)
+	{
+        // scaling_cur_freq przechowuje wartość w kHz
+        std::string path = "/sys/devices/system/cpu/cpu" + std::to_string(cpu_idx) + "/cpufreq/scaling_cur_freq";
+        std::ifstream file(path);
+        
+        if(!file.is_open())
+		{
+            break;
+        }
+        
+        int freq_khz;
+        if (file >> freq_khz)
+		{
+            state.cpuFreqs.push_back(freq_khz / 1000); // Konwersja na MHz
+        }
+        cpu_idx++;
+    }
+}
+
 // READ MEMORY INFO
 void read_mem(STATE &state)
 {

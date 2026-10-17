@@ -2,7 +2,8 @@
 #include <string>
 #include <vector>
 
-struct MEMORY_INFO {
+struct MEMORY_INFO
+{
 	int tot = 0;
 	int av = 0;
 	float usg = 0;
@@ -11,7 +12,8 @@ struct MEMORY_INFO {
 	float swapusg = 0;
 };
 
-struct CPU_STATIC_INFO {
+struct CPU_STATIC_INFO 
+{
 	std::string cores;
 	std::string vendor;
 	std::string cpufamily;
@@ -20,7 +22,8 @@ struct CPU_STATIC_INFO {
 	std::string cachesize;
 };
 
-struct CPU_DYNAMIC_INFO {
+struct CPU_DYNAMIC_INFO
+{
 	unsigned long long user=0, nice=0, system=0, idle=0, iowait=0, irq=0, softirq=0;
 	float usage=0.0f;
 	float smoothUsage=0.0f;
@@ -31,45 +34,51 @@ struct PROCESS_INFO {
 	int interr=0;
    	int contextSwitches=0;
 	int bootTime=0;
-    	int allProcs=0;
-    	int runningProcs=0;
-    	int blockedProcs=0;
+    int allProcs=0;
+    int runningProcs=0;
+    int blockedProcs=0;
 	long uptimeRaw=0;
 	int uptimeH=0, uptimeM=0, uptimeS=0;
 };
 
-struct PSAUX {
+struct PSAUX
+{
 	int kthrd=0;
 	int uthrd=0;
 	std::string paththrd;
 };
 
-struct NETWORK {
+struct NETWORK
+{
 	unsigned long long txPrev=0;
  	unsigned long long rxPrev=0;
 	unsigned long long rxDiff=0, txDiff=0;
 };
 
-struct SYSINFO {
+struct SYSINFO 
+{
 	std::string os;
 	std::string kver;
 	std::string hostname;
 }; 
 
-struct FileSystemInfo {
+struct FileSystemInfo
+{
 	std::string device;
 	std::string mountPoint;
 	std::string fsType;
 	unsigned long long total, used, available; 
-    	float usage;
+    float usage;
 };
 
-struct DISK_INFO {
+struct DISK_INFO
+{
 	std::vector<FileSystemInfo> filesystems;
 	unsigned long long prevRead=0, prevWrite=0, readDiff=0, writeDiff=0;
 };
 
-struct PROCESS {
+struct PROCESS
+{
     int pid = 0;
     std::string user = "N/A", command = "";
     char RSZ = '?'; 
@@ -79,9 +88,9 @@ struct PROCESS {
     float cpupercent = 0.0f;
 };
 
-
 // MAIN STRUCTURE
-struct STATE {
+struct STATE
+{
 	MEMORY_INFO mem;
 	CPU_STATIC_INFO cpus;
 	CPU_DYNAMIC_INFO cpud;
@@ -92,4 +101,6 @@ struct STATE {
 	SYSINFO sys;
 	std::vector<PROCESS> pCurr;
 	std::vector<PROCESS> pPrev;
+	std::vector<int> cpuFreqs;
+	int cpuTemp;
 };
