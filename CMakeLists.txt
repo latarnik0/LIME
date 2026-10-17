@@ -8,9 +8,9 @@ include_directories(include)
 find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
 
-add_executable(lime 
-    src/main.cpp 
-    src/lime_core.cpp 
+add_executable(lime
+    src/main.cpp
+    src/lime_core.cpp
     src/ui.cpp
 )
 
