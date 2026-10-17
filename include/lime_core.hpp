@@ -1,5 +1,5 @@
 #pragma once
-#include "structs.hpp" 
+#include "include/structs.hpp" 
 #include <mutex>
 #include <atomic>
 
