@@ -96,16 +96,14 @@ Window {
                     border.width: 1
                     radius: 0
 
-                    Column {
+                    ColumnLayout {
                         visible: index === 0
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
+                        anchors.fill: parent
                         anchors.margins: 10
-                        spacing: 2
+                        spacing: 8
 
                         RowLayout {
-                            width: parent.width
+                            Layout.fillWidth: true
                             spacing: 8
 
                             Text {
@@ -127,12 +125,62 @@ Window {
                             }
                         }
 
-                        Repeater {
-                            model: root.lime ? root.lime.perCoreUsage : []
-                            Text {
-                                text: "core " + index + "  " + Number(modelData).toFixed(0) + "%"
-                                color: "#7FA8B8"
-                                font.pixelSize: 12
+                        Item {
+                            id: orbitHost
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+
+                            readonly property var coreUsages: root.lime ? root.lime.perCoreUsage : []
+                            readonly property int coreCount: coreUsages.length
+                            readonly property real maxRadius: Math.max(0, Math.min(width, height) * 0.38 - 4)
+                            readonly property real minRadius: coreCount > 1 ? maxRadius * 0.28 : maxRadius * 0.7
+                            readonly property real radiusStep: coreCount > 1
+                                                               ? (maxRadius - minRadius) / (coreCount - 1)
+                                                               : 0
+
+                            Repeater {
+                                model: orbitHost.coreCount
+
+                                Item {
+                                    id: ring
+                                    anchors.centerIn: parent
+                                    width: orbitHost.width
+                                    height: orbitHost.height
+
+                                    readonly property real orbitRadius: orbitHost.minRadius
+                                                                        + index * orbitHost.radiusStep
+                                    // Static phase only (step 1); rotation drive comes later.
+                                    rotation: index * 18
+
+                                    Canvas {
+                                        id: ringCanvas
+                                        anchors.fill: parent
+                                        antialiasing: true
+
+                                        onPaint: {
+                                            const ctx = getContext("2d")
+                                            ctx.reset()
+                                            if (ring.orbitRadius <= 0)
+                                                return
+
+                                            const cx = width * 0.5
+                                            const cy = height * 0.5
+                                            const r = ring.orbitRadius
+
+                                            ctx.strokeStyle = "#7FA8B8"
+                                            ctx.lineWidth = 1.25
+                                            ctx.beginPath()
+                                            ctx.arc(cx, cy, r, 0, Math.PI * 2, false)
+                                            ctx.stroke()
+                                        }
+
+                                        Component.onCompleted: requestPaint()
+                                    }
+
+                                    onOrbitRadiusChanged: ringCanvas.requestPaint()
+                                    onWidthChanged: ringCanvas.requestPaint()
+                                    onHeightChanged: ringCanvas.requestPaint()
+                                }
                             }
                         }
                     }
