@@ -24,11 +24,14 @@ qt_add_executable(lime_app
     ${PROJECT_SOURCES}
 )
 
+set_source_files_properties(qml_gui/Main.qml
+    PROPERTIES QT_RESOURCE_ALIAS "Main.qml")
+
 qt_add_qml_module(${PROJECT_NAME}
     URI LimeModule
     VERSION 1.0
     QML_FILES
-        Main.qml
+        qml_gui/Main.qml
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
