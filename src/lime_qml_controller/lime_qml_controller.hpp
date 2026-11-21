@@ -22,6 +22,10 @@ class LimeQmlController : public QObject
 	Q_PROPERTY(QVariantList perCoreUsage READ perCoreUsage NOTIFY statsChanged)
 	Q_PROPERTY(int cpuTemp READ cpuTemp NOTIFY statsChanged)
 	Q_PROPERTY(int cpuFreqMhz READ cpuFreqMhz NOTIFY statsChanged)
+	Q_PROPERTY(double netRxBps READ netRxBps NOTIFY statsChanged)
+	Q_PROPERTY(double netTxBps READ netTxBps NOTIFY statsChanged)
+	Q_PROPERTY(double diskReadBps READ diskReadBps NOTIFY statsChanged)
+	Q_PROPERTY(double diskWriteBps READ diskWriteBps NOTIFY statsChanged)
 
 public:
 	explicit LimeQmlController(QObject *parent = nullptr);
@@ -35,6 +39,10 @@ public:
 	QVariantList perCoreUsage() const { return m_perCoreUsage; }
 	int cpuTemp() const { return m_cpuTemp; }
 	int cpuFreqMhz() const { return m_cpuFreqMhz; }
+	double netRxBps() const { return m_netRxBps; }
+	double netTxBps() const { return m_netTxBps; }
+	double diskReadBps() const { return m_diskReadBps; }
+	double diskWriteBps() const { return m_diskWriteBps; }
 
 public slots:
 	void refresh();
@@ -58,4 +66,8 @@ private:
 	QVariantList m_perCoreUsage;
 	int m_cpuTemp = 0;
 	int m_cpuFreqMhz = 0;
+	double m_netRxBps = 0;
+	double m_netTxBps = 0;
+	double m_diskReadBps = 0;
+	double m_diskWriteBps = 0;
 };

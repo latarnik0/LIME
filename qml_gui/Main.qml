@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick3D
+import QtQuick3D.Helpers
 
 Window {
     id: root
@@ -132,56 +134,130 @@ Window {
 
                             readonly property var coreUsages: root.lime ? root.lime.perCoreUsage : []
                             readonly property int coreCount: coreUsages.length
-                            readonly property real maxRadius: Math.max(0, Math.min(width, height) * 0.38 - 4)
-                            readonly property real minRadius: coreCount > 1 ? maxRadius * 0.28 : maxRadius * 0.7
+                            readonly property real maxRadius: 78
+                            readonly property real minRadius: coreCount > 1 ? 22 : 55
                             readonly property real radiusStep: coreCount > 1
                                                                ? (maxRadius - minRadius) / (coreCount - 1)
                                                                : 0
+                            property var ringAngles: []
 
-                            Repeater {
-                                model: orbitHost.coreCount
-
-                                Item {
-                                    id: ring
-                                    anchors.centerIn: parent
-                                    width: orbitHost.width
-                                    height: orbitHost.height
-
-                                    readonly property real orbitRadius: orbitHost.minRadius
-                                                                        + index * orbitHost.radiusStep
-                                    // Static phase only (step 1); rotation drive comes later.
-                                    rotation: index * 18
-
-                                    Canvas {
-                                        id: ringCanvas
-                                        anchors.fill: parent
-                                        antialiasing: true
-
-                                        onPaint: {
-                                            const ctx = getContext("2d")
-                                            ctx.reset()
-                                            if (ring.orbitRadius <= 0)
-                                                return
-
-                                            const cx = width * 0.5
-                                            const cy = height * 0.5
-                                            const r = ring.orbitRadius
-
-                                            ctx.strokeStyle = "#7FA8B8"
-                                            ctx.lineWidth = 1.25
-                                            ctx.beginPath()
-                                            ctx.arc(cx, cy, r, 0, Math.PI * 2, false)
-                                            ctx.stroke()
-                                        }
-
-                                        Component.onCompleted: requestPaint()
+                            FrameAnimation {
+                                running: orbitHost.coreCount > 0
+                                onTriggered: {
+                                    const count = orbitHost.coreCount
+                                    const usages = orbitHost.coreUsages
+                                    const dt = frameTime
+                                    const minDegPerSec = 25
+                                    const maxDegPerSec = 270
+                                    let angles = orbitHost.ringAngles.length === count
+                                                 ? orbitHost.ringAngles.slice()
+                                                 : Array(count).fill(0)
+                                    for (let i = 0; i < count; ++i) {
+                                        const raw = (usages && i < usages.length)
+                                                    ? Number(usages[i])
+                                                    : 0
+                                        const usage = Number.isFinite(raw)
+                                                      ? Math.max(0, Math.min(100, raw))
+                                                      : 0
+                                        const t = Math.pow(usage / 100, 1.2)
+                                        const speed = minDegPerSec
+                                                      + (maxDegPerSec - minDegPerSec) * t
+                                        angles[i] = (angles[i] + speed * dt) % 360
                                     }
-
-                                    onOrbitRadiusChanged: ringCanvas.requestPaint()
-                                    onWidthChanged: ringCanvas.requestPaint()
-                                    onHeightChanged: ringCanvas.requestPaint()
+                                    orbitHost.ringAngles = angles
                                 }
                             }
+
+                            View3D {
+                                anchors.fill: parent
+                                camera: orbitCamera
+
+                                environment: SceneEnvironment {
+                                    clearColor: "transparent"
+                                    backgroundMode: SceneEnvironment.Transparent
+                                    antialiasingMode: SceneEnvironment.MSAA
+                                    antialiasingQuality: SceneEnvironment.High
+                                }
+
+                                PerspectiveCamera {
+                                    id: orbitCamera
+                                    position: Qt.vector3d(0, 160, 125)
+                                    eulerRotation.x: -50
+                                }
+
+                                DirectionalLight {
+                                    eulerRotation.x: 0
+                                    brightness: 1.4
+                                    ambientColor: "#334455"
+                                }
+
+                                Repeater3D {
+                                    model: orbitHost.coreCount
+
+                                    Node {
+                                        eulerRotation.x: orbitHost.coreCount > 0
+                                                         ? index * 180 / orbitHost.coreCount
+                                                         : 0
+                                        eulerRotation.y: orbitHost.coreCount > 0
+                                                         ? index * 360 / orbitHost.coreCount
+                                                         : 0
+
+                                        Model {
+                                            eulerRotation.z: index < orbitHost.ringAngles.length
+                                                             ? orbitHost.ringAngles[index]
+                                                             : 0
+
+                                            geometry: TorusGeometry {
+                                                radius: orbitHost.minRadius
+                                                        + index * orbitHost.radiusStep
+                                                tubeRadius: 1.1
+                                                rings: 72
+                                                segments: 16
+                                            }
+
+                                            materials: PrincipledMaterial {
+                                                baseColor: "#7FA8B8"
+                                                roughness: 0.25
+                                                metalness: 0.05
+                                                lighting: PrincipledMaterial.FragmentLighting
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        visible: index === 3
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 8
+
+                        IoChart {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            title: "Disk I/O"
+                            upName: "rd"
+                            downName: "wr"
+                            upValue: root.lime ? root.lime.diskReadBps : 0
+                            downValue: root.lime ? root.lime.diskWriteBps : 0
+                            upColor: "#5EC8D8"
+                            downColor: "#7FA8B8"
+                            statsSource: root.lime
+                        }
+
+                        IoChart {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            title: "Net I/O"
+                            upName: "rx"
+                            downName: "tx"
+                            upValue: root.lime ? root.lime.netRxBps : 0
+                            downValue: root.lime ? root.lime.netTxBps : 0
+                            upColor: "#5EC8D8"
+                            downColor: "#7FA8B8"
+                            statsSource: root.lime
                         }
                     }
                 }

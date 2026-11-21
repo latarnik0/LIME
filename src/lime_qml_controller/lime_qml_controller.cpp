@@ -63,4 +63,9 @@ void LimeQmlController::applyState(const STATE &s)
 	{
 		m_battery = QStringLiteral("BAT N/A");
 	}
+
+	m_netRxBps = s.net.rxBps;
+	m_netTxBps = s.net.txBps;
+	m_diskReadBps = s.disks.readBps;
+	m_diskWriteBps = s.disks.writeBps;
 }

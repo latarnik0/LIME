@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Quick3D)
 find_package(Threads REQUIRED)
 
 set(PROJECT_SOURCES
@@ -26,12 +26,15 @@ qt_add_executable(lime_app
 
 set_source_files_properties(qml_gui/Main.qml
     PROPERTIES QT_RESOURCE_ALIAS "Main.qml")
+set_source_files_properties(qml_gui/IoChart.qml
+    PROPERTIES QT_RESOURCE_ALIAS "IoChart.qml")
 
 qt_add_qml_module(${PROJECT_NAME}
     URI LimeModule
     VERSION 1.0
     QML_FILES
         qml_gui/Main.qml
+        qml_gui/IoChart.qml
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -44,5 +47,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
+    Qt6::Quick3D
     Threads::Threads
 )
