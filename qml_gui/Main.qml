@@ -148,7 +148,7 @@ Window {
                                     const usages = orbitHost.coreUsages
                                     const dt = frameTime
                                     const minDegPerSec = 25
-                                    const maxDegPerSec = 270
+                                    const maxDegPerSec = 320
                                     let angles = orbitHost.ringAngles.length === count
                                                  ? orbitHost.ringAngles.slice()
                                                  : Array(count).fill(0)

@@ -2,7 +2,12 @@
 #include "structs.hpp"
 #include <mutex>
 #include <atomic>
+#include <vector>
 
+static constexpr int NUMBER_OF_PILLARS = 625;
+static constexpr int MAX_HEIGHT_OF_PILLAR = 8000;
+
+std::vector<std::vector<uint64_t>> distributeRemainingLoad(STATE &state); 
 void read_mem(STATE &state);
 void read_cpus(STATE &state);
 void read_cpud(STATE &state, double dtSec);

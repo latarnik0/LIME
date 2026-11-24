@@ -18,6 +18,11 @@ struct MEMORY_INFO
 	std::uint64_t swaptKb = 0;
 	std::uint64_t swapfKb = 0;
 	float swapusg = 0.0f;
+
+	std::uint64_t fullyUsedPillars = 0;
+	std::uint64_t partiallyUsedPillars = 0;
+	std::uint64_t remainingLoad = 0;
+	std::vector<std::vector<uint64_t>> pillarPlain = {};
 };
 
 struct CPU_STATIC_INFO

@@ -119,6 +119,11 @@ fs::path find_intel_drm_card()
 
 } // namespace
 
+std::vector<std::vector<uint64_t>> distributeRemainingLoad(STATE &state)
+{
+
+}
+
 bool is_number(const std::string &s)
 {
 	if (s.empty())
@@ -330,16 +335,29 @@ void read_mem(STATE &state)
 	state.mem.swapfKb = get("SwapFree:");
 
 	if (state.mem.totKb > 0)
+	{
 		state.mem.usg = static_cast<float>((state.mem.totKb - state.mem.avKb) * 100.0) /
 		                static_cast<float>(state.mem.totKb);
+		// RAM usage visualization
+		state.mem.fullyUsedPillars = ((state.mem.totKb - state.mem.avKb) * 1000) / MAX_HEIGHT_OF_PILLAR;
+		state.mem.partiallyUsedPillars = NUMBER_OF_PILLARS - state.mem.fullyUsedPillars;
+		state.mem.remainingLoad = ((state.mem.totKb - state.mem.avKb) * 1000) % MAX_HEIGHT_OF_PILLAR;
+		
+	}
 	else
+	{
 		state.mem.usg = 0.0f;
-
-	if (state.mem.swaptKb > 0)
+	}
+	
+	if(state.mem.swaptKb > 0)
+	{
 		state.mem.swapusg = static_cast<float>((state.mem.swaptKb - state.mem.swapfKb) * 100.0) /
 		                    static_cast<float>(state.mem.swaptKb);
+	}
 	else
+	{
 		state.mem.swapusg = 0.0f;
+	}
 }
 
 void read_cpus(STATE &state)
